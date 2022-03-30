@@ -499,7 +499,9 @@ class TdApi:
                 direction=Direction.NET,
                 volume=int(float(d["current_amount"])),
                 price=float(d["av_cost_price"]),
-                frozen=d["frozen_amount"],
+                frozen=int(float(d["frozen_amount"])),
+                yd_volume=int(float(d["enable_amount"])),
+                pnl=float(d["income_balance"]),
                 gateway_name=self.gateway_name
             )
             self.gateway.on_position(position)
