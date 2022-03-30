@@ -540,7 +540,6 @@ class TdApi:
         for d in data:
             time_str = d["report_time"][:-3].rjust(6, "0")
             timestamp = datetime.today().strftime("%Y%m%d") + " " + time_str
-            print(timestamp)
             dt = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
             dt = dt.replace(tzinfo=CHINA_TZ)
 
@@ -648,8 +647,10 @@ class TdApi:
         """登录"""
         ret = self.connection.Create2BizMsg(self.callback)
         if ret != 0:
-            print('creat faild!!')
-            print(self.connection.GetErrorMsg(ret))
+            msg: str = self.connection.GetErrorMsg(ret)
+            self.gateway.write_log(f"登录失败，错误码{ret}，错误信息{msg}")
+            return
+
         hs_req = self.generate_req()
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
