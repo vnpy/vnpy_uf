@@ -663,96 +663,89 @@ class TdApi:
         """委托订阅"""
         ret = self.connection.Create2BizMsg(self.callback)
         if ret != 0:
-            print('creat faild!!')
-            print(self.connection.GetErrorMsg(ret))
+            msg: str = self.connection.GetErrorMsg(ret)
+            self.gateway.write_log(f"委托订阅失败，错误码{ret}，错误信息{msg}")
+            return
 
-        try:
-            lpCheckPack = py_t2sdk.pyIF2Packer()
-            lpCheckPack.BeginPack()
-            # 加入字段名
-            lpCheckPack.AddField("branch_no", 'I', 5)
-            lpCheckPack.AddField("fund_account", 'S', 18)
-            lpCheckPack.AddField("op_branch_no", 'I', 5)
-            lpCheckPack.AddField("op_entrust_way", 'C', 1)
-            lpCheckPack.AddField("op_station", 'S', 255)
-            lpCheckPack.AddField("client_id", 'S', 18)
-            lpCheckPack.AddField("password", 'S', 10)
-            lpCheckPack.AddField("user_token", 'S', 40)
-            lpCheckPack.AddField("issue_type", 'I', 8)
+        lpCheckPack = py_t2sdk.pyIF2Packer()
+        lpCheckPack.BeginPack()
+        # 加入字段名
+        lpCheckPack.AddField("branch_no", 'I', 5)
+        lpCheckPack.AddField("fund_account", 'S', 18)
+        lpCheckPack.AddField("op_branch_no", 'I', 5)
+        lpCheckPack.AddField("op_entrust_way", 'C', 1)
+        lpCheckPack.AddField("op_station", 'S', 255)
+        lpCheckPack.AddField("client_id", 'S', 18)
+        lpCheckPack.AddField("password", 'S', 10)
+        lpCheckPack.AddField("user_token", 'S', 40)
+        lpCheckPack.AddField("issue_type", 'I', 8)
 
-            # 加入对应的字段值
-            lpCheckPack.AddInt(self.branch_no)
-            lpCheckPack.AddStr(self.account)
-            lpCheckPack.AddInt(0)
-            lpCheckPack.AddChar('7')
-            lpCheckPack.AddStr("")
-            lpCheckPack.AddStr("")
-            lpCheckPack.AddStr(self.password)
-            lpCheckPack.AddStr(self.user_token)
-            lpCheckPack.AddInt(23)                # 23-委托订阅
-            lpCheckPack.EndPack()
+        # 加入对应的字段值
+        lpCheckPack.AddInt(self.branch_no)
+        lpCheckPack.AddStr(self.account)
+        lpCheckPack.AddInt(0)
+        lpCheckPack.AddChar('7')
+        lpCheckPack.AddStr("")
+        lpCheckPack.AddStr("")
+        lpCheckPack.AddStr(self.password)
+        lpCheckPack.AddStr(self.user_token)
+        lpCheckPack.AddInt(23)                # 23-委托订阅
+        lpCheckPack.EndPack()
 
-            pyMsg = py_t2sdk.pyIBizMessage()
-            pyMsg.SetFunction(620001)
-            pyMsg.SetPacketType(0)
-            pyMsg.SetKeyInfo(lpCheckPack.GetPackBuf(), lpCheckPack.GetPackLen())
+        pyMsg = py_t2sdk.pyIBizMessage()
+        pyMsg.SetFunction(620001)
+        pyMsg.SetPacketType(0)
+        pyMsg.SetKeyInfo(lpCheckPack.GetPackBuf(), lpCheckPack.GetPackLen())
 
-            lpCheckPack.FreeMem()
-            lpCheckPack.Release()
-            ret = self.connection.SendBizMsg(pyMsg, 1)
-            pyMsg.Release()
-        except:
-            traceback.print_exc()
-        finally:
-            print('finally')
+        lpCheckPack.FreeMem()
+        lpCheckPack.Release()
+        ret = self.connection.SendBizMsg(pyMsg, 1)
+        pyMsg.Release()
 
     def subscribe_trade(self) -> None:
         """成交订阅"""
         ret = self.connection.Create2BizMsg(self.callback)
         if ret != 0:
-            print('creat faild!!')
-            print(self.connection.GetErrorMsg(ret))
+            msg: str = self.connection.GetErrorMsg(ret)
+            self.gateway.write_log(f"成交订阅失败，错误码{ret}，错误信息{msg}")
+            return
 
-        try:
-            lpCheckPack = py_t2sdk.pyIF2Packer()
-            lpCheckPack.BeginPack()
-            # 加入字段名
-            lpCheckPack.AddField("branch_no", 'I', 5)
-            lpCheckPack.AddField("fund_account", 'S', 18)
-            lpCheckPack.AddField("op_branch_no", 'I', 5)
-            lpCheckPack.AddField("op_entrust_way", 'C', 1)
-            lpCheckPack.AddField("op_station", 'S', 255)
-            lpCheckPack.AddField("client_id", 'S', 18)
-            lpCheckPack.AddField("password", 'S', 10)
-            lpCheckPack.AddField("user_token", 'S', 40)
-            lpCheckPack.AddField("issue_type", 'I', 8)
+        lpCheckPack = py_t2sdk.pyIF2Packer()
+        lpCheckPack.BeginPack()
 
-            # 加入对应的字段值
-            lpCheckPack.AddInt(self.branch_no)
-            lpCheckPack.AddStr(self.account)
-            lpCheckPack.AddInt(0)
-            lpCheckPack.AddChar('7')
-            lpCheckPack.AddStr("")
-            lpCheckPack.AddStr("")
-            lpCheckPack.AddStr("")
-            lpCheckPack.AddStr(self.user_token)
-            lpCheckPack.AddInt(12)              # 12-成交订阅
-            lpCheckPack.EndPack()
+        # 加入字段名
+        lpCheckPack.AddField("branch_no", 'I', 5)
+        lpCheckPack.AddField("fund_account", 'S', 18)
+        lpCheckPack.AddField("op_branch_no", 'I', 5)
+        lpCheckPack.AddField("op_entrust_way", 'C', 1)
+        lpCheckPack.AddField("op_station", 'S', 255)
+        lpCheckPack.AddField("client_id", 'S', 18)
+        lpCheckPack.AddField("password", 'S', 10)
+        lpCheckPack.AddField("user_token", 'S', 40)
+        lpCheckPack.AddField("issue_type", 'I', 8)
 
-            pyMsg = py_t2sdk.pyIBizMessage()
-            pyMsg.SetFunction(620001)
-            pyMsg.SetPacketType(0)
-            pyMsg.SetKeyInfo(lpCheckPack.GetPackBuf(), lpCheckPack.GetPackLen())
+        # 加入对应的字段值
+        lpCheckPack.AddInt(self.branch_no)
+        lpCheckPack.AddStr(self.account)
+        lpCheckPack.AddInt(0)
+        lpCheckPack.AddChar('7')
+        lpCheckPack.AddStr("")
+        lpCheckPack.AddStr("")
+        lpCheckPack.AddStr("")
+        lpCheckPack.AddStr(self.user_token)
+        lpCheckPack.AddInt(12)              # 12-成交订阅
+        lpCheckPack.EndPack()
 
-            lpCheckPack.FreeMem()
-            lpCheckPack.Release()
-            ret = self.connection.SendBizMsg(pyMsg, 1)
+        pyMsg = py_t2sdk.pyIBizMessage()
+        pyMsg.SetFunction(620001)
+        pyMsg.SetPacketType(0)
+        pyMsg.SetKeyInfo(lpCheckPack.GetPackBuf(), lpCheckPack.GetPackLen())
 
-            pyMsg.Release()
-        except:
-            traceback.print_exc()
-        finally:
-            print("finally")
+        lpCheckPack.FreeMem()
+        lpCheckPack.Release()
+        ret = self.connection.SendBizMsg(pyMsg, 1)
+
+        pyMsg.Release()
 
     def generate_req(self) -> Dict[str, str]:
         """生成标准请求包"""
