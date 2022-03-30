@@ -15,7 +15,6 @@ from vnpy.trader.constant import (
     OptionType
 )
 from vnpy.trader.object import (
-    TickData,
     OrderData,
     TradeData,
     PositionData,
@@ -104,7 +103,7 @@ class UfxGateway(BaseGateway):
         "UFX密码": "111111",
         "UFX服务器1": "121.41.126.194:9359",
         "UFX服务器2": "",
-        "UFX许可证": "license.dat", # 填写.dat文件的具体路径
+        "UFX许可证": "license.dat",            # 填写.dat文件的具体路径
         "UFX证书": "",
         "UFX登录名称": "",
     }
@@ -113,7 +112,7 @@ class UfxGateway(BaseGateway):
 
     def __init__(self, event_engine: EventEngine, gateway_name: str = "UFX"):
         super().__init__(event_engine, gateway_name)
-        
+
         self.td_api = TdApi(self)
 
         self.contracts: Dict[str, ContractData] = {}
@@ -150,19 +149,19 @@ class UfxGateway(BaseGateway):
     def subscribe(self, req: SubscribeRequest):
         """订阅行情"""
         pass
-        
+
     def send_order(self, req: OrderRequest):
         """委托下单"""
         return self.td_api.send_order(req)
-          
+
     def cancel_order(self, req: CancelRequest):
         """委托撤单"""
         self.td_api.cancel_order(req)
-    
+
     def query_account(self):
         """查询账户"""
         self.td_api.query_account()
-    
+
     def query_position(self):
         """查询持仓"""
         self.td_api.query_position()
@@ -178,7 +177,7 @@ class UfxGateway(BaseGateway):
     def close(self):
         """关闭连接"""
         self.td_api.close()
-    
+
     def process_timer_event(self, event):
         """处理定时事件"""
         self.count += 1
@@ -203,9 +202,10 @@ class UfxGateway(BaseGateway):
         """查询合约信息"""
         return self.contracts.get(vt_symbol, None)
 
+
 class TdApi:
     """UFX交易Api"""
-    
+
     def __init__(self, gateway: BaseGateway) -> None:
         self.gateway: BaseGateway = gateway
         self.gateway_name: str = gateway.gateway_name
@@ -214,7 +214,7 @@ class TdApi:
         global td_api
         if not td_api:
             td_api = self
-        
+
         # 登录信息
         self.branch_no: int = 0
         self.entrust_way: str = ""
@@ -238,7 +238,7 @@ class TdApi:
         self.tradeids: Set[str] = set()
         self.localid_sysid_map: Dict[str, str] = {}
         self.reqid_sysid_map: Dict[int, str] = {}
-        
+
         # 连接对象
         self.connection: py_t2sdk.pyConnectionInterface = None
         self.callback: Callable = None
@@ -288,17 +288,17 @@ class TdApi:
         # 如果尚未连接，则尝试连接
         if not self.connect_status:
             if self.server1 and self.server2:
-                server = f"{self.server1};{self.server2}"   
+                server = f"{self.server1};{self.server2}"
             else:
                 server = self.server1
-            
+
             self.connection, self.callback = self.init_connection("交易", server)
             self.connect_status = True
-        
+
         # 连接完成后发起登录请求
         if not self.login_status:
             self.login()
-              
+
     def init_connection(self, name: str, server: str):
         """初始化连接"""
         config = py_t2sdk.pyCConfigInterface()
@@ -344,7 +344,7 @@ class TdApi:
 
         self.gateway.write_log(f"{name}服务器连接成功")
         return connection, async_callback
-    
+
     def close(self) -> None:
         """关闭API"""
 
@@ -461,7 +461,7 @@ class TdApi:
             self.tradeids.add(trade.tradeid)
 
             self.gateway.on_trade(trade)
-        
+
         self.gateway.write_log("成交信息查询成功")
 
     def on_query_contract(self, data: List[Dict[str, str]], reqid: int) -> None:
@@ -469,7 +469,7 @@ class TdApi:
         if self.check_error(data):
             self.gateway.write_log("合约信息查询失败")
             return
-        
+
         for d in data:
             contract = ContractData(
                 symbol=d["stock_code"],
@@ -618,7 +618,7 @@ class TdApi:
             self.on_order(data, reqid)
         else:
             self.on_trade(data, reqid)
-    
+
     def send_req(self, function: int, req: dict) -> int:
         """发送T2SDK请求数据包"""
         packer = py_t2sdk.pyIF2Packer()
@@ -626,10 +626,10 @@ class TdApi:
 
         for Filed in req.keys():
             packer.AddField(str(Filed))
-        
+
         for value in req.values():
             packer.AddStr(str(value))
-        
+
         packer.EndPack()
 
         msg = py_t2sdk.pyIBizMessage()
@@ -658,7 +658,7 @@ class TdApi:
         hs_req["content_type"] = "0"
         hs_req["branch_no"] = self.branch_no
         self.send_req(FUNCTION_USER_LOGIN, hs_req)
-        
+
     def subscribe_order(self) -> None:
         """委托订阅"""
         ret = self.connection.Create2BizMsg(self.callback)
@@ -689,7 +689,7 @@ class TdApi:
             lpCheckPack.AddStr("")
             lpCheckPack.AddStr(self.password)
             lpCheckPack.AddStr(self.user_token)
-            lpCheckPack.AddInt(23)  #23-委托订阅
+            lpCheckPack.AddInt(23)                # 23-委托订阅
             lpCheckPack.EndPack()
 
             pyMsg = py_t2sdk.pyIBizMessage()
@@ -712,7 +712,7 @@ class TdApi:
         if ret != 0:
             print('creat faild!!')
             print(self.connection.GetErrorMsg(ret))
-    
+
         try:
             lpCheckPack = py_t2sdk.pyIF2Packer()
             lpCheckPack.BeginPack()
@@ -736,7 +736,7 @@ class TdApi:
             lpCheckPack.AddStr("")
             lpCheckPack.AddStr("")
             lpCheckPack.AddStr(self.user_token)
-            lpCheckPack.AddInt(12)  #12-成交订阅
+            lpCheckPack.AddInt(12)              # 12-成交订阅
             lpCheckPack.EndPack()
 
             pyMsg = py_t2sdk.pyIBizMessage()
@@ -747,7 +747,7 @@ class TdApi:
             lpCheckPack.FreeMem()
             lpCheckPack.Release()
             ret = self.connection.SendBizMsg(pyMsg, 1)
-            
+
             pyMsg.Release()
         except:
             traceback.print_exc()
@@ -762,9 +762,9 @@ class TdApi:
             "op_station": self.station
         }
         return req
-    
+
     def on_async_callback(self, function: int, data: dict, reqid: int) -> None:
-        """回调推送""" 
+        """回调推送"""
         func = self.callbacks.get(function, None)
 
         if func:
@@ -806,7 +806,7 @@ class TdApi:
         hs_req["user_token"] = self.user_token
 
         reqid = self.send_req(FUNCTION_SEND_ORDER, hs_req)
-        
+
         self.reqid_orderid_map[reqid] = orderid
         order = req.create_order_data(orderid, self.gateway_name)
         self.orders[orderid] = order
@@ -904,7 +904,7 @@ class TdApi:
         self.query_sse_contrace()
         self.query_szse_contracts()
 
-    def query_sse_contrace(self) -> int:  
+    def query_sse_contrace(self) -> int:
         hs_req = self.generate_req()
         hs_req["fund_account"] = self.account
         hs_req["password"] = self.password
@@ -961,10 +961,10 @@ class TdAsyncCallback:
                     self.td_api.on_async_callback(function, data, hSend)
 
                     unpacker.Release()
-               
+
             biz_msg.Release()
         except Exception:
-            traceback.print_exc()  
+            traceback.print_exc()
 
 
 def unpack_data(unpacker: py_t2sdk.pyIF2UnPacker) -> List[Dict[str, str]]:
