@@ -764,7 +764,7 @@ class TdApi:
         if func:
             func(data, reqid)
         else:
-            print("找不到对应的异步回调函数", function, data, reqid)
+            self.gateway.write_log(f"找不到对应的异步回调函数，函数编号{function}")
 
     def send_order(self, req: OrderRequest) -> int:
         """
