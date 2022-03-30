@@ -766,18 +766,17 @@ class TdApi:
         else:
             self.gateway.write_log(f"找不到对应的异步回调函数，函数编号{function}")
 
-    def send_order(self, req: OrderRequest) -> int:
-        """
-        委托下单
-        """
+    def send_order(self, req: OrderRequest) -> str:
+        """委托下单"""
         ret = self.connection.Create2BizMsg(self.callback)
         if ret != 0:
-            print('creat faild!!')
-            print(self.connection.GetErrorMsg(ret))
-        # 检查合法性
+            msg: str = self.connection.GetErrorMsg(ret)
+            self.gateway.write_log(f"委托失败，错误码{ret}，错误信息{msg}")
+            return ""
+
         if req.exchange not in EXCHANGE_VT2UFX:
             self.gateway.write_log(f"委托失败，不支持的交易所{req.exchange.value}")
-            return
+            return ""
 
         # 发送委托
         self.order_count += 1
