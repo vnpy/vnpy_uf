@@ -11,7 +11,8 @@ from vnpy.trader.constant import (
     Exchange,
     Product,
     Status,
-    OptionType
+    OptionType,
+    OrderType
 )
 from vnpy.trader.object import (
     OrderData,
@@ -45,6 +46,13 @@ DIRECTION_VT2UFX: Dict[Direction, str] = {
     Direction.SHORT: "2"
 }
 DIRECTION_UFX2VT = {v: k for k, v in DIRECTION_VT2UFX.items()}
+
+# 委托类型映射
+ORDERTYPE_VT2UFX: Dict[OrderType, str] = {
+    OrderType.LIMIT: "0",
+    OrderType.MARKET: "U"
+}
+ORDERTYPE_UFX2VT: Dict[str, OrderType] = {v: k for k, v in ORDERTYPE_VT2UFX.items()}
 
 # 持仓方向映射
 POS_DIRECTION_UFX2VT: Dict[str, Direction] = {
@@ -419,6 +427,7 @@ class TdApi:
                 volume=int(float(d["entrust_amount"])),
                 traded=int(float(d["business_amount"])),
                 price=float(d["entrust_price"]),
+                type=ORDERTYPE_UFX2VT[d["entrust_prop"]],
                 datetime=dt,
                 gateway_name=self.gateway_name
             )
@@ -562,6 +571,7 @@ class TdApi:
                 volume=int(float(d["entrust_amount"])),
                 traded=int(float(d["business_amount"])),
                 price=float(d["entrust_price"]),
+                type=ORDERTYPE_UFX2VT[d["entrust_prop"]],
                 datetime=dt,
                 gateway_name=self.gateway_name
             )
@@ -777,6 +787,10 @@ class TdApi:
             self.gateway.write_log(f"委托失败，不支持的交易所{req.exchange.value}")
             return ""
 
+        if req.type not in ORDERTYPE_VT2UFX:
+            self.gateway.write_log(f"委托失败，不支持的委托类型{req.type.value}")
+            return ""
+
         # 发送委托
         self.order_count += 1
         reference = str(self.order_count).rjust(6, "0")
@@ -793,7 +807,7 @@ class TdApi:
         hs_req["entrust_amount"] = req.volume
         hs_req["entrust_price"] = req.price
         hs_req["entrust_bs"] = DIRECTION_VT2UFX[req.direction]
-        hs_req["entrust_prop"] = "0"
+        hs_req["entrust_prop"] = ORDERTYPE_VT2UFX[req.type]
         hs_req["entrust_reference"] = orderid
         hs_req["user_token"] = self.user_token
 
