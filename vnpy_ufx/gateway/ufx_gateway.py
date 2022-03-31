@@ -26,7 +26,8 @@ from vnpy.trader.object import (
 )
 
 from ..api import (
-    py_t2sdk
+    LICENSE,
+    py_t2sdk,
 )
 
 
@@ -112,7 +113,6 @@ class UfxGateway(BaseGateway):
         "UFX密码": "111111",
         "UFX服务器1": "121.41.126.194:9359",
         "UFX服务器2": "",
-        "UFX许可证": "license.dat",            # 填写.dat文件的具体路径
         "UFX登录名称": "",
     }
 
@@ -134,7 +134,6 @@ class UfxGateway(BaseGateway):
         ufx_password = setting["UFX密码"]
         ufx_server1 = setting["UFX服务器1"]
         ufx_server2 = setting["UFX服务器2"]
-        ufx_license = setting["UFX许可证"]
         ufx_name = setting["UFX登录名称"]
         ufx_station = ""
 
@@ -146,7 +145,6 @@ class UfxGateway(BaseGateway):
             ufx_password,
             ufx_server1,
             ufx_server2,
-            ufx_license,
             ufx_name
         )
 
@@ -275,7 +273,6 @@ class TdApi:
         password: str,
         server1: str,
         server2: str,
-        license: str,
         name: str
     ) -> None:
         """连接服务器"""
@@ -286,7 +283,6 @@ class TdApi:
         self.password = password
         self.server1 = server1
         self.server2 = server2
-        self.license = license
         self.name = name
 
         # 如果尚未连接，则尝试连接
@@ -308,7 +304,7 @@ class TdApi:
         config = py_t2sdk.pyCConfigInterface()
         # t2sdk
         config.SetString("t2sdk", "servers", server)
-        config.SetString("t2sdk", "license_file", self.license)
+        config.SetString("t2sdk", "license_file", LICENSE)
         config.SetInt("t2sdk", "send_queue_size", 100000)
         config.SetInt("t2sdk", "init_recv_buf_size", 102400)
         config.SetInt("t2sdk", "init_send_buf_size", 102400)
