@@ -2,7 +2,6 @@ from typing import Callable, Dict, List, Set
 from datetime import datetime, time
 from pytz import timezone
 from copy import copy
-import traceback
 
 from vnpy.trader.gateway import BaseGateway
 from vnpy.trader.engine import EventEngine
@@ -936,28 +935,25 @@ class TdAsyncCallback:
 
     def OnReceivedBizMsg(self, hSend, sBuff, iLen) -> None:
         """异步数据回调"""
-        try:
-            biz_msg = py_t2sdk.pyIBizMessage()
-            biz_msg.SetBuff(sBuff, iLen)
+        biz_msg = py_t2sdk.pyIBizMessage()
+        biz_msg.SetBuff(sBuff, iLen)
 
-            function = biz_msg.GetFunction()
-            # 维护心跳
-            if function == 620000:
-                biz_msg.ChangeReq2AnsMessage()
-                self.td_api.connection.SendBizMsg(biz_msg, 1)
-            else:
-                buf, len = biz_msg.GetContent()
-                if len > 0:
-                    unpacker = py_t2sdk.pyIF2UnPacker()
-                    unpacker.Open(buf, len)
-                    data = unpack_data(unpacker)
-                    self.td_api.on_async_callback(function, data, hSend)
+        function = biz_msg.GetFunction()
+        # 维护心跳
+        if function == 620000:
+            biz_msg.ChangeReq2AnsMessage()
+            self.td_api.connection.SendBizMsg(biz_msg, 1)
+        else:
+            buf, len = biz_msg.GetContent()
+            if len > 0:
+                unpacker = py_t2sdk.pyIF2UnPacker()
+                unpacker.Open(buf, len)
+                data = unpack_data(unpacker)
+                self.td_api.on_async_callback(function, data, hSend)
 
-                    unpacker.Release()
+                unpacker.Release()
 
-            biz_msg.Release()
-        except Exception:
-            traceback.print_exc()
+        biz_msg.Release()
 
 
 def unpack_data(unpacker: py_t2sdk.pyIF2UnPacker) -> List[Dict[str, str]]:
