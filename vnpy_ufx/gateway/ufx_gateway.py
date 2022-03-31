@@ -11,7 +11,6 @@ from vnpy.trader.constant import (
     Exchange,
     Product,
     Status,
-    OptionType,
     OrderType
 )
 from vnpy.trader.object import (
@@ -54,12 +53,6 @@ ORDERTYPE_VT2UFX: Dict[OrderType, str] = {
 }
 ORDERTYPE_UFX2VT: Dict[str, OrderType] = {v: k for k, v in ORDERTYPE_VT2UFX.items()}
 
-# 持仓方向映射
-POS_DIRECTION_UFX2VT: Dict[str, Direction] = {
-    "0": Direction.LONG,
-    "1": Direction.SHORT
-}
-
 # 状态映射
 STATUS_UFX2VT: Dict[str, Status] = {
     "0": Status.SUBMITTING,
@@ -72,21 +65,6 @@ STATUS_UFX2VT: Dict[str, Status] = {
     "7": Status.PARTTRADED,
     "8": Status.ALLTRADED,
     "9": Status.REJECTED
-}
-
-# 产品类型映射
-PRODUCT_UFX2VT: Dict[str, Product] = {
-    "1": Product.FUTURES,
-    "2": Product.OPTION,
-    "7": Product.OPTION,
-    "3": Product.SPREAD,
-    "6": Product.EQUITY
-}
-
-# 期权类型映射
-OPTIONTYPE_UFX2VT: Dict[str, OptionType] = {
-    "O": OptionType.CALL,
-    "C": OptionType.PUT
 }
 
 
