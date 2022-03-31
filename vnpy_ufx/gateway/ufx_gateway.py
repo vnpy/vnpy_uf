@@ -29,7 +29,6 @@ from ..api import (
     py_t2sdk
 )
 
-CHINA_TZ = timezone("Asia/Shanghai")
 
 # 交易所映射
 EXCHANGE_UFX2VT: Dict[str, Exchange] = {
@@ -89,16 +88,19 @@ OPTIONTYPE_UFX2VT: Dict[str, OptionType] = {
     "C": OptionType.PUT
 }
 
-FUNCTION_USER_LOGIN = 331100
 
-FUNCTION_QUERY_CONTRACT = 330300
-FUNCTION_QUERY_ORDER = 333101
-FUNCTION_QUERY_TRADE = 333102
-FUNCTION_QUERY_ACCOUNT = 332255
-FUNCTION_QUERY_POSITION = 333104
-FUNCTION_SEND_ORDER = 333002
-FUNCTION_CANCEL_ORDER = 333017
-FUNCTION_SUBSCRIBE_RETURN = 620003
+# 其他常量
+CHINA_TZ = timezone("Asia/Shanghai")       # 中国时区
+
+FUNCTION_USER_LOGIN: int = 331100
+FUNCTION_QUERY_CONTRACT: int = 330300
+FUNCTION_QUERY_ORDER: int = 333101
+FUNCTION_QUERY_TRADE: int = 333102
+FUNCTION_QUERY_ACCOUNT: int = 332255
+FUNCTION_QUERY_POSITION: int = 333104
+FUNCTION_SEND_ORDER: int = 333002
+FUNCTION_CANCEL_ORDER: int = 333017
+FUNCTION_SUBSCRIBE_RETURN: int = 620003
 
 
 class UfxGateway(BaseGateway):
@@ -244,6 +246,7 @@ class TdApi:
         self.date_str = datetime.now().strftime("%Y%m%d")
         self.tradeids: Set[str] = set()
         self.localid_sysid_map: Dict[str, str] = {}
+        self.sysid_localid_map: Dict[str, str] = {}
         self.reqid_sysid_map: Dict[int, str] = {}
 
         # 连接对象
@@ -388,7 +391,6 @@ class TdApi:
 
         self.query_contract()
         self.query_order()
-        self.query_trade()
 
     def on_query_account(self, data: List[Dict[str, str]], reqid: int) -> None:
         """查询资金回调"""
@@ -433,10 +435,12 @@ class TdApi:
             )
 
             self.localid_sysid_map[orderid] = d["entrust_no"]
+            self.sysid_localid_map[d["entrust_no"]] = orderid
             self.orders[order.orderid] = order
             self.gateway.on_order(order)
 
         self.gateway.write_log("委托信息查询成功")
+        self.query_trade()
 
     def on_query_trade(self, data: List[Dict[str, str]], reqid: int) -> None:
         """查询成交回调"""
@@ -449,7 +453,7 @@ class TdApi:
             dt = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
             dt = dt.replace(tzinfo=CHINA_TZ)
 
-            orderid = d["order_id"]
+            orderid = self.sysid_localid_map[d["entrust_no"]]
 
             trade = TradeData(
                 orderid=orderid,
