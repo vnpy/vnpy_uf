@@ -1,4 +1,4 @@
-# vn.py框架的恒生UFX交易接口
+# VeighNa框架的恒生UFX交易接口
 
 <p align="center">
   <img src ="https://vnpy.oss-cn-shanghai.aliyuncs.com/vnpy-logo.png"/>
@@ -17,7 +17,7 @@
 
 ## 安装
 
-安装需要基于3.0版本以上的[VN Studio](https://www.vnpy.com)。
+安装需要基于2.9.0版本的【[**VeighNa Studio**](https://www.vnpy.com)】。
 
 直接使用pip命令：
 
