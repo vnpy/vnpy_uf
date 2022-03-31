@@ -307,7 +307,7 @@ class TdApi:
         config.SetInt("t2sdk", "lan", 1033)
         config.SetInt("t2sdk", "auto_reconnect", 1)
         config.SetInt("t2sdk", "writedata", 1)
-        config.SetString("t2sdk", "logdir", "E:\\test")
+        config.SetString("t2sdk", "logdir", "")
         # ufx
         config.SetString("ufx", "fund_account", self.account)
         config.SetString("ufx", "password", self.password)
