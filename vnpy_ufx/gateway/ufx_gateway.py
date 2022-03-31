@@ -897,10 +897,10 @@ class TdApi:
 
     def query_contract(self) -> int:
         """查询合约"""
-        self.query_sse_contrace()
+        self.query_sse_contracts()
         self.query_szse_contracts()
 
-    def query_sse_contrace(self) -> int:
+    def query_sse_contracts(self) -> int:
         """查询上交所合约信息"""
         hs_req: dict = self.generate_req()
         hs_req["fund_account"] = self.account
