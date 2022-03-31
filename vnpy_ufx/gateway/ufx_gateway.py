@@ -113,7 +113,6 @@ class UfxGateway(BaseGateway):
         "UFX服务器1": "121.41.126.194:9359",
         "UFX服务器2": "",
         "UFX许可证": "license.dat",            # 填写.dat文件的具体路径
-        "UFX证书": "",
         "UFX登录名称": "",
     }
 
@@ -136,7 +135,6 @@ class UfxGateway(BaseGateway):
         ufx_server1 = setting["UFX服务器1"]
         ufx_server2 = setting["UFX服务器2"]
         ufx_license = setting["UFX许可证"]
-        ufx_pfx = setting["UFX证书"]
         ufx_name = setting["UFX登录名称"]
         ufx_station = ""
 
@@ -149,7 +147,6 @@ class UfxGateway(BaseGateway):
             ufx_server1,
             ufx_server2,
             ufx_license,
-            ufx_pfx,
             ufx_name
         )
 
@@ -231,7 +228,6 @@ class TdApi:
         self.account: str = ""
         self.password: str = ""
         self.license: str = ""
-        self.pfx: str = ""
         self.name: str = ""
 
         # 运行缓存
@@ -280,7 +276,6 @@ class TdApi:
         server1: str,
         server2: str,
         license: str,
-        pfx: str,
         name: str
     ) -> None:
         """连接服务器"""
@@ -292,7 +287,6 @@ class TdApi:
         self.server1 = server1
         self.server2 = server2
         self.license = license
-        self.pfx = pfx
         self.name = name
 
         # 如果尚未连接，则尝试连接
