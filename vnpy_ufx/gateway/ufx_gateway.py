@@ -1,7 +1,14 @@
+from termios import TIOCPKT_DATA
 from typing import Any, Callable, Dict, List, Set
 from datetime import datetime, time
 from pytz import timezone
 from copy import copy
+from threading import Thread
+from time import sleep
+
+import tushare as ts
+from tushare.pro.client import DataApi
+from pandas import DataFrame
 
 from vnpy.trader.gateway import BaseGateway
 from vnpy.trader.engine import EventEngine
@@ -16,6 +23,7 @@ from vnpy.trader.constant import (
 from vnpy.trader.object import (
     OrderData,
     TradeData,
+    TickData,
     PositionData,
     AccountData,
     ContractData,
@@ -23,6 +31,7 @@ from vnpy.trader.object import (
     CancelRequest,
     SubscribeRequest
 )
+from vnpy.trader.setting import SETTINGS
 
 from ..api import (
     LICENSE,
@@ -81,6 +90,9 @@ FUNCTION_SEND_ORDER: int = 333002
 FUNCTION_CANCEL_ORDER: int = 333017
 FUNCTION_SUBSCRIBE_RETURN: int = 620003
 
+# 合约数据全局缓存字典
+symbol_contract_map: Dict[str, ContractData] = {}
+
 
 class UfxGateway(BaseGateway):
     """UFX证券接口"""
@@ -101,6 +113,9 @@ class UfxGateway(BaseGateway):
         super().__init__(event_engine, gateway_name)
 
         self.td_api: "TdApi" = TdApi(self)
+        self.md_api: "MdApi" = MdApi(self)
+
+        self.run_timer: Thread = Thread(target=self.process_md_event)
 
         self.contracts: Dict[str, ContractData] = {}
 
@@ -129,10 +144,11 @@ class UfxGateway(BaseGateway):
         )
 
         self.init_query()
+        self.init_md_query()
 
     def subscribe(self, req: SubscribeRequest) -> None:
         """订阅行情"""
-        pass
+        self.md_api.subscribe(req)
 
     def send_order(self, req: OrderRequest) -> str:
         """委托下单"""
@@ -179,13 +195,93 @@ class UfxGateway(BaseGateway):
         self.query_functions: list = [self.query_account, self.query_position]
         self.event_engine.register(EVENT_TIMER, self.process_timer_event)
 
+    def process_md_event(self) -> None:
+        """定时事件处理"""
+        while self.td_api._active:
+            sleep(3)
+            self.md_api.query_realtime_quotes()
+
+    def init_md_query(self) -> None:
+        """初始化查询任务"""
+        self.run_timer.start()
+
+
+class MdApi:
+
+    def __init__(self, gateway: UfxGateway) -> None:
+        """构造函数"""
+        self.gateway: UfxGateway = gateway
+        self.gateway_name: str = gateway.gateway_name
+
+        self.username: str = SETTINGS["datafeed.username"]
+        self.password: str = SETTINGS["datafeed.password"]
+
+        self.inited: bool = False
+        self.subscribed: set = set()
+
+    def subscribe(self, req: SubscribeRequest) -> None:
+        """订阅行情"""
+        if req.symbol in symbol_contract_map:
+            self.subscribed.add(req.symbol)
+
+    def init(self) -> bool:
+        """初始化"""
+        if self.inited:
+            return True
+
+        ts.set_token(self.password)
+        self.pro: DataApi = ts.pro_api()
+        self.inited = True
+
+        return True
+
+    def query_realtime_quotes(self) -> None:
+        """查询k线数据"""
+        if not self.inited:
+            n: bool = self.init()
+            if not n:
+                return
+
+        try:
+            df: DataFrame = ts.get_realtime_quotes(self.subscribed)
+        except IOError:
+            return
+
+        if df is not None:
+            for ix, row in df.iterrows():
+                dt: str = row["date"] + row["time"]
+                dt: datetime = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+                dt: datetime = CHINA_TZ.localize(dt)
+
+                contract: ContractData = symbol_contract_map[row["code"]]
+
+                tick: tick = TickData(
+                    symbol=row["code"],
+                    exchange=contract.exchange,
+                    datetime=dt,
+                    name=contract.name,
+                    open_price=float(row["open"]),
+                    high_price=float(row["high"]),
+                    low_price=float(row["low"]),
+                    pre_close=float(row["pre_close"]),
+                    last_price=float(row["price"]),
+                    volume=float(row["volume"]),
+                    turnover=float(row["amount"]),
+                    bid_price_1=float(row["b1_p"]),
+                    bid_volume_1=float(row["b1_v"]),
+                    ask_price_1=float(row["a1_p"]),
+                    ask_volume_1=float(row["a1_v"]),
+                    gateway_name=self.gateway_name
+                )
+                self.gateway.on_tick(tick)
+
 
 class TdApi:
     """UFX交易Api"""
 
-    def __init__(self, gateway: BaseGateway) -> None:
+    def __init__(self, gateway: UfxGateway) -> None:
         """构造函数"""
-        self.gateway: BaseGateway = gateway
+        self.gateway: UfxGateway = gateway
         self.gateway_name: str = gateway.gateway_name
 
         # 绑定自身实例到全局对象
@@ -462,6 +558,7 @@ class TdApi:
             )
 
             self.gateway.on_contract(contract)
+            symbol_contract_map[contract.symbol] = contract
 
         self.gateway.write_log("证券合约信息查询成功")
 
