@@ -1,4 +1,3 @@
-from termios import TIOCPKT_DATA
 from typing import Any, Callable, Dict, List, Set
 from datetime import datetime, time
 from pytz import timezone
@@ -249,16 +248,13 @@ class MdApi:
 
         if df is not None:
             for ix, row in df.iterrows():
-                dt: str = row["date"] + row["time"]
-                dt: datetime = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
-                dt: datetime = CHINA_TZ.localize(dt)
-
+                dt: str = row["date"].replace("-", "") + " " + row["time"]
                 contract: ContractData = symbol_contract_map[row["code"]]
 
                 tick: tick = TickData(
                     symbol=row["code"],
                     exchange=contract.exchange,
-                    datetime=dt,
+                    datetime=generate_datetime(dt),
                     name=contract.name,
                     open_price=float(row["open"]),
                     high_price=float(row["high"]),
@@ -319,6 +315,7 @@ class TdApi:
 
         # 初始化回调
         self.init_callbacks()
+        self._active: bool = True
 
     def init_callbacks(self) -> None:
         """初始化回调函数"""
@@ -417,7 +414,7 @@ class TdApi:
 
     def close(self) -> None:
         """关闭API"""
-        pass
+        self._active = False
 
     def check_error(self, data: List[Dict[str, str]]) -> bool:
         """检查报错信息"""
@@ -478,9 +475,7 @@ class TdApi:
 
         for d in data:
             time_str: str = d["report_time"].rjust(6, "0")
-            timestamp: str = d["init_date"] + " " + time_str[:6]
-            dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
-            dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+            dt: str = d["init_date"] + " " + time_str[:6]
 
             order: OrderData = OrderData(
                 symbol=d["stock_code"],
@@ -492,7 +487,7 @@ class TdApi:
                 traded=int(float(d["business_amount"])),
                 price=float(d["entrust_price"]),
                 type=ORDERTYPE_UFX2VT[d["entrust_prop"]],
-                datetime=dt,
+                datetime=generate_datetime(dt),
                 gateway_name=self.gateway_name
             )
 
@@ -512,9 +507,7 @@ class TdApi:
 
         for d in data:
             time_str: str = d["business_time"].rjust(6, "0")[:6]
-            timestamp: str = d["date"] + " " + time_str
-            dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
-            dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+            dt: str = d["date"] + " " + time_str
 
             orderid: str = self.sysid_localid_map[d["entrust_no"]]
 
@@ -526,7 +519,7 @@ class TdApi:
                 direction=DIRECTION_UFX2VT[d["entrust_bs"]],
                 price=float(d["business_price"]),
                 volume=int(float(d["business_amount"])),
-                datetime=dt,
+                datetime=generate_datetime(dt),
                 gateway_name=self.gateway_name
             )
 
@@ -616,9 +609,7 @@ class TdApi:
         """委托推送"""
         for d in data:
             time_str: str = d["report_time"][:-3].rjust(6, "0")
-            timestamp: datetime = datetime.today().strftime("%Y%m%d") + " " + time_str
-            dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
-            dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+            dt: datetime = datetime.today().strftime("%Y%m%d") + " " + time_str
 
             # 过滤撤单回报
             if d["entrust_type"] == "2":
@@ -639,7 +630,7 @@ class TdApi:
                 traded=int(float(d["business_amount"])),
                 price=float(d["entrust_price"]),
                 type=ORDERTYPE_UFX2VT[d["entrust_prop"]],
-                datetime=dt,
+                datetime=generate_datetime(dt),
                 gateway_name=self.gateway_name
             )
 
@@ -653,9 +644,7 @@ class TdApi:
             orderid: str = d["entrust_reference"]
 
             if d["real_type"] != "2" and d["real_status"] != "2":
-                timestamp: str = d["init_date"] + " " + d["business_time"]
-                dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
-                dt: datetime = dt.replace(tzinfo=CHINA_TZ)
+                dt: str = d["init_date"] + " " + d["business_time"]
 
                 trade: TradeData = TradeData(
                     orderid=orderid,
@@ -665,7 +654,7 @@ class TdApi:
                     direction=DIRECTION_UFX2VT[d["entrust_bs"]],
                     price=float(d["business_price"]),
                     volume=int(float(d["business_amount"])),
-                    datetime=dt,
+                    datetime=generate_datetime(dt),
                     gateway_name=self.gateway_name
                 )
 
@@ -1059,6 +1048,13 @@ def unpack_data(unpacker: py_t2sdk.pyIF2UnPacker) -> List[Dict[str, str]]:
             data.append(d)
 
     return data
+
+
+def generate_datetime(timestamp: str) -> datetime:
+    """生成时间戳"""
+    dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
+    dt: datetime = CHINA_TZ.localize(dt)
+    return dt
 
 
 # TD API全局对象（用于在回调类中访问）
