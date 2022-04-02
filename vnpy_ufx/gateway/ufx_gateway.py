@@ -421,10 +421,10 @@ class TdApi:
         if not data:
             return False
         d: dict = data[0]
-        error_no: int = d.get("error_no", "")
+        error_no: str = d.get("error_no", "")
 
         if error_no:
-            if error_no == 0:
+            if error_no == "0":
                 return False
             error_info: str = d["error_info"]
             self.gateway.write_log(f"请求失败，错误代码：{error_no}，错误信息：{error_info}")
