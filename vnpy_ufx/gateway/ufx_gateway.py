@@ -41,9 +41,7 @@ from ..api import (
 # 交易所映射
 EXCHANGE_UFX2VT: Dict[str, Exchange] = {
     "1": Exchange.SSE,
-    "2": Exchange.SZSE,
-    "G": Exchange.SEHK,
-    "S": Exchange.SEHK
+    "2": Exchange.SZSE
 }
 EXCHANGE_VT2UFX: Dict[Exchange, str] = {v: k for k, v in EXCHANGE_UFX2VT.items()}
 
