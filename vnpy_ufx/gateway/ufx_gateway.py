@@ -551,7 +551,7 @@ class TdApi:
             self.gateway.on_contract(contract)
             symbol_contract_map[contract.symbol] = contract
 
-        self.gateway.write_log("证券合约信息查询成功")
+        self.gateway.write_log(f"{contract.exchange.value}合约信息查询成功")
 
     def on_query_position(self, data: List[Dict[str, str]], reqid: int) -> None:
         """持仓查询回报"""
