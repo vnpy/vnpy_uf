@@ -17,7 +17,7 @@
 
 ## 安装
 
-安装需要基于2.9.0版本的【[**VeighNa Studio**](https://www.vnpy.com)】。
+安装需要基于3.0.0版本的【[**VeighNa**](https://github.com/vnpy/vnpy)】和Python3.7环境（若使用2.9.0版本的【[**VeighNa Studio**](https://www.vnpy.com/)】，需要升级tushare至最新版本）。
 
 直接使用pip命令：
 
