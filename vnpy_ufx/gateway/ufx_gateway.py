@@ -400,7 +400,7 @@ class TdApi:
         if ret:
             msg: str = str(connection.GetErrorMsg(ret))
             self.gateway.write_log(f"{name}连接初始化失败，错误码:{ret}，信息:{msg}")
-            return None
+            return
 
         # 连接服务器
         ret: int = connection.Connect(3000)
@@ -408,7 +408,7 @@ class TdApi:
         if ret:
             msg: str = str(connection.GetErrorMsg(ret))
             self.gateway.write_log(f"{name}服务器连接失败，错误码：{ret}，信息：{msg}")
-            return None
+            return
 
         self.gateway.write_log(f"{name}服务器连接成功")
         return connection, async_callback
@@ -421,6 +421,7 @@ class TdApi:
         """检查报错信息"""
         if not data:
             return False
+
         d: dict = data[0]
         error_no: str = d.get("error_no", "")
 
@@ -591,11 +592,12 @@ class TdApi:
         else:
             d: dict = data[0]
             self.localid_sysid_map[orderid] = d["entrust_no"]
+            self.sysid_localid_map[d["entrust_no"]] = orderid
 
     def on_cancel_order(self, data: List[Dict[str, str]], reqid: int) -> None:
         """委托撤单回报"""
         sysid: str = self.reqid_sysid_map[reqid]
-        orderid = list(self.localid_sysid_map.keys())[list(self.localid_sysid_map.values()).index(sysid)]
+        orderid: str = self.sysid_localid_map[sysid]
 
         if self.check_error(data):
             # 记录日志
