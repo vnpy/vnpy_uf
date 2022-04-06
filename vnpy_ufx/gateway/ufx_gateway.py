@@ -880,11 +880,6 @@ class TdApi:
 
     def cancel_order(self, req: CancelRequest) -> None:
         """委托撤单"""
-        # 检查当前时间是否允许撤单
-        now = datetime.now().time()
-        if time(11, 31) <= now <= time(12, 59) or now >= time(15, 0):
-            return
-
         # 发送撤单请求
         hs_req = self.generate_req()
         hs_req["branch_no"] = self.branch_no
