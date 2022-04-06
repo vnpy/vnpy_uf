@@ -245,6 +245,9 @@ class MdApi:
             return
 
         if df is not None:
+            # 处理原始数据中的NaN值
+            df.fillna(0, inplace=True)
+
             for ix, row in df.iterrows():
                 dt: str = row["date"].replace("-", "") + " " + row["time"].replace(":", "")
                 contract: ContractData = symbol_contract_map[row["code"]]
