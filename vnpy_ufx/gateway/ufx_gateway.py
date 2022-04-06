@@ -476,27 +476,28 @@ class TdApi:
             return
 
         for d in data:
-            time_str: str = d["report_time"].rjust(6, "0")
-            dt: str = d["init_date"] + " " + time_str[:6]
+            if d["report_time"] != '0':
 
-            order: OrderData = OrderData(
-                symbol=d["stock_code"],
-                exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
-                direction=DIRECTION_UFX2VT[d["entrust_bs"]],
-                status=STATUS_UFX2VT.get(d["entrust_status"], Status.SUBMITTING),
-                orderid=d["entrust_reference"],
-                volume=int(float(d["entrust_amount"])),
-                traded=int(float(d["business_amount"])),
-                price=float(d["entrust_price"]),
-                type=ORDERTYPE_UFX2VT[d["entrust_prop"]],
-                datetime=generate_datetime(dt),
-                gateway_name=self.gateway_name
-            )
+                time_str: str = d["report_time"].rjust(6, "0")
+                dt: str = d["init_date"] + " " + time_str[:6]
+                order: OrderData = OrderData(
+                    symbol=d["stock_code"],
+                    exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
+                    direction=DIRECTION_UFX2VT[d["entrust_bs"]],
+                    status=STATUS_UFX2VT.get(d["entrust_status"], Status.SUBMITTING),
+                    orderid=d["entrust_reference"],
+                    volume=int(float(d["entrust_amount"])),
+                    traded=int(float(d["business_amount"])),
+                    price=float(d["entrust_price"]),
+                    type=ORDERTYPE_UFX2VT[d["entrust_prop"]],
+                    datetime=generate_datetime(dt),
+                    gateway_name=self.gateway_name
+                )
 
-            self.localid_sysid_map[order.orderid] = d["entrust_no"]
-            self.sysid_localid_map[d["entrust_no"]] = order.orderid
-            self.orders[order.orderid] = order
-            self.gateway.on_order(order)
+                self.localid_sysid_map[order.orderid] = d["entrust_no"]
+                self.sysid_localid_map[d["entrust_no"]] = order.orderid
+                self.orders[order.orderid] = order
+                self.gateway.on_order(order)
 
         self.gateway.write_log("委托信息查询成功")
         self.query_trade()
