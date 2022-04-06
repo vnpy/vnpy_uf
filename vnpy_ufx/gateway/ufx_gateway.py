@@ -246,7 +246,7 @@ class MdApi:
 
         if df is not None:
             for ix, row in df.iterrows():
-                dt: str = row["date"].replace("-", "") + " " + row["time"]
+                dt: str = row["date"].replace("-", "") + " " + row["time"].replace(":", "")
                 contract: ContractData = symbol_contract_map[row["code"]]
 
                 tick: tick = TickData(
@@ -1050,7 +1050,7 @@ def unpack_data(unpacker: py_t2sdk.pyIF2UnPacker) -> List[Dict[str, str]]:
 
 def generate_datetime(timestamp: str) -> datetime:
     """生成时间戳"""
-    dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H:%M:%S")
+    dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
     dt: datetime = CHINA_TZ.localize(dt)
     return dt
 
