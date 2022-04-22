@@ -33,29 +33,29 @@ from ..api import (
 CHINA_TZ = timezone("Asia/Shanghai")
 
 # 交易所映射
-EXCHANGE_UF2VT: Dict[str, Exchange] = {
+EXCHANGE_UFX2VT: Dict[str, Exchange] = {
     "1": Exchange.SSE,
     "2": Exchange.SZSE,
     "G": Exchange.SEHK,
     "S": Exchange.SEHK
 }
-EXCHANGE_VT2UF = {v: k for k, v in EXCHANGE_UF2VT.items()}
+EXCHANGE_VT2UFX = {v: k for k, v in EXCHANGE_UFX2VT.items()}
 
 # 方向映射
-DIRECTION_VT2UF: Dict[Direction, str] = {
+DIRECTION_VT2UFX: Dict[Direction, str] = {
     Direction.LONG: "1",
     Direction.SHORT: "2"
 }
-DIRECTION_UF2VT = {v: k for k, v in DIRECTION_VT2UF.items()}
+DIRECTION_UFX2VT = {v: k for k, v in DIRECTION_VT2UFX.items()}
 
 # 持仓方向映射
-POS_DIRECTION_UF2VT: Dict[str, Direction] = {
+POS_DIRECTION_UFX2VT: Dict[str, Direction] = {
     "0": Direction.LONG,
     "1": Direction.SHORT
 }
 
 # 状态映射
-STATUS_UF2VT: Dict[str, Status] = {
+STATUS_UFX2VT: Dict[str, Status] = {
     "0": Status.SUBMITTING,
     "1": Status.SUBMITTING,
     "2": Status.NOTTRADED,
@@ -69,7 +69,7 @@ STATUS_UF2VT: Dict[str, Status] = {
 }
 
 # 产品类型映射
-PRODUCT_UF2VT: Dict[str, Product] = {
+PRODUCT_UFX2VT: Dict[str, Product] = {
     "1": Product.FUTURES,
     "2": Product.OPTION,
     "7": Product.OPTION,
@@ -78,7 +78,7 @@ PRODUCT_UF2VT: Dict[str, Product] = {
 }
 
 # 期权类型映射
-OPTIONTYPE_UF2VT: Dict[str, OptionType] = {
+OPTIONTYPE_UFX2VT: Dict[str, OptionType] = {
     "O": OptionType.CALL,
     "C": OptionType.PUT
 }
@@ -95,23 +95,23 @@ FUNCTION_CANCEL_ORDER = 333017
 FUNCTION_SUBSCRIBE_RETURN = 620003
 
 
-class UfGateway(BaseGateway):
-    """UF证券接口"""
+class UfxGateway(BaseGateway):
+    """UFX证券接口"""
     default_setting = {
-        "UF营业部": 0,
-        "UF委托方式": "7",
-        "UF账号": "70960562",
-        "UF密码": "111111",
-        "UF服务器1": "121.41.126.194:9359",
-        "UF服务器2": "",
-        "UF许可证": "license.dat", # 填写.dat文件的具体路径
-        "UF证书": "",
-        "UF登录名称": "",
+        "UFX营业部": 0,
+        "UFX委托方式": "7",
+        "UFX账号": "70960562",
+        "UFX密码": "111111",
+        "UFX服务器1": "121.41.126.194:9359",
+        "UFX服务器2": "",
+        "UFX许可证": "license.dat", # 填写.dat文件的具体路径
+        "UFX证书": "",
+        "UFX登录名称": "",
     }
 
-    exchanges: List[str] = list(EXCHANGE_UF2VT.values())
+    exchanges: List[str] = list(EXCHANGE_UFX2VT.values())
 
-    def __init__(self, event_engine: EventEngine, gateway_name: str = "UF"):
+    def __init__(self, event_engine: EventEngine, gateway_name: str = "UFX"):
         super().__init__(event_engine, gateway_name)
         
         self.td_api = TdApi(self)
@@ -120,29 +120,29 @@ class UfGateway(BaseGateway):
 
     def connect(self, setting: dict) -> None:
         """连接服务器"""
-        # 连接UF交易服务器
-        uf_branch_no = int(setting["UF营业部"])
-        uf_entrust_way = setting["UF委托方式"]
-        uf_account = setting["UF账号"]
-        uf_password = setting["UF密码"]
-        uf_server1 = setting["UF服务器1"]
-        uf_server2 = setting["UF服务器2"]
-        uf_license = setting["UF许可证"]
-        uf_pfx = setting["UF证书"]
-        uf_name = setting["UF登录名称"]
-        uf_station = ""
+        # 连接UFX交易服务器
+        ufx_branch_no = int(setting["UFX营业部"])
+        ufx_entrust_way = setting["UFX委托方式"]
+        ufx_account = setting["UFX账号"]
+        ufx_password = setting["UFX密码"]
+        ufx_server1 = setting["UFX服务器1"]
+        ufx_server2 = setting["UFX服务器2"]
+        ufx_license = setting["UFX许可证"]
+        ufx_pfx = setting["UFX证书"]
+        ufx_name = setting["UFX登录名称"]
+        ufx_station = ""
 
         self.td_api.connect(
-            uf_branch_no,
-            uf_entrust_way,
-            uf_station,
-            uf_account,
-            uf_password,
-            uf_server1,
-            uf_server2,
-            uf_license,
-            uf_pfx,
-            uf_name
+            ufx_branch_no,
+            ufx_entrust_way,
+            ufx_station,
+            ufx_account,
+            ufx_password,
+            ufx_server1,
+            ufx_server2,
+            ufx_license,
+            ufx_pfx,
+            ufx_name
         )
 
         self.init_query()
@@ -204,7 +204,7 @@ class UfGateway(BaseGateway):
         return self.contracts.get(vt_symbol, None)
 
 class TdApi:
-    """UF交易Api"""
+    """UFX交易Api"""
     
     def __init__(self, gateway: BaseGateway) -> None:
         self.gateway: BaseGateway = gateway
@@ -302,7 +302,6 @@ class TdApi:
     def init_connection(self, name: str, server: str):
         """初始化连接"""
         config = py_t2sdk.pyCConfigInterface()
-
         # t2sdk
         config.SetString("t2sdk", "servers", server)
         config.SetString("t2sdk", "license_file", self.license)
@@ -313,14 +312,13 @@ class TdApi:
         config.SetInt("t2sdk", "auto_reconnect", 1)
         config.SetInt("t2sdk", "writedata", 1)
         config.SetString("t2sdk", "logdir", "E:\\test")
-
-        # UF
+        # ufx
         config.SetString("ufx", "fund_account", self.account)
         config.SetString("ufx", "password", self.password)
 
         # 创建回调函数对象
         async_callback = py_t2sdk.pyCallbackInterface(
-            "vnpy_uf.gateway.uf_gateway",
+            "vnpy_ufx.gateway.ufx_gateway",
             "TdAsyncCallback"
         )
         async_callback.InitInstance()
@@ -369,8 +367,8 @@ class TdApi:
     def on_login(self, data: List[Dict[str, str]], reqid: int) -> None:
         """登录回调"""
         if self.check_error(data):
-            self.gateway.write_log("UF证券系统登录失败")
-        self.gateway.write_log("UF证券系统登录成功")
+            self.gateway.write_log("UFX证券系统登录失败")
+        self.gateway.write_log("UFX证券系统登录成功")
         self.login_status = True
 
         for d in data:
@@ -415,9 +413,9 @@ class TdApi:
 
             order = OrderData(
                 symbol=d["stock_code"],
-                exchange=EXCHANGE_UF2VT[d["exchange_type"]],
-                direction=DIRECTION_UF2VT[d["entrust_bs"]],
-                status=STATUS_UF2VT.get(d["entrust_status"], Status.SUBMITTING),
+                exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
+                direction=DIRECTION_UFX2VT[d["entrust_bs"]],
+                status=STATUS_UFX2VT.get(d["entrust_status"], Status.SUBMITTING),
                 orderid=orderid,
                 volume=int(float(d["entrust_amount"])),
                 traded=int(float(d["business_amount"])),
@@ -449,8 +447,8 @@ class TdApi:
                 orderid=orderid,
                 tradeid=d["business_id"],
                 symbol=d["stock_code"],
-                exchange=EXCHANGE_UF2VT[d["exchange_type"]],
-                direction=DIRECTION_UF2VT[d["entrust_bs"]],
+                exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
+                direction=DIRECTION_UFX2VT[d["entrust_bs"]],
                 price=float(d["business_price"]),
                 volume=int(float(d["business_amount"])),
                 datetime=dt,
@@ -475,7 +473,7 @@ class TdApi:
         for d in data:
             contract = ContractData(
                 symbol=d["stock_code"],
-                exchange=EXCHANGE_UF2VT[d["exchange_type"]],
+                exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
                 name=d["stock_name"],
                 size=int(float(d["store_unit"])),
                 pricetick=float(d["price_step"]),
@@ -497,7 +495,7 @@ class TdApi:
         for d in data:
             position = PositionData(
                 symbol=d["stock_code"],
-                exchange=EXCHANGE_UF2VT[d["exchange_type"]],
+                exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
                 direction=Direction.NET,
                 volume=int(float(d["current_amount"])),
                 price=float(d["av_cost_price"]),
@@ -557,9 +555,9 @@ class TdApi:
 
             order = OrderData(
                 symbol=d["stock_code"],
-                exchange=EXCHANGE_UF2VT[d["exchange_type"]],
-                direction=DIRECTION_UF2VT[d["entrust_bs"]],
-                status=STATUS_UF2VT.get(d["entrust_status"], Status.SUBMITTING),
+                exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
+                direction=DIRECTION_UFX2VT[d["entrust_bs"]],
+                status=STATUS_UFX2VT.get(d["entrust_status"], Status.SUBMITTING),
                 orderid=orderid,
                 volume=int(float(d["entrust_amount"])),
                 traded=int(float(d["business_amount"])),
@@ -585,8 +583,8 @@ class TdApi:
                     orderid=orderid,
                     tradeid=d["business_id"],
                     symbol=d["stock_code"],
-                    exchange=EXCHANGE_UF2VT[d["exchange_type"]],
-                    direction=DIRECTION_UF2VT[d["entrust_bs"]],
+                    exchange=EXCHANGE_UFX2VT[d["exchange_type"]],
+                    direction=DIRECTION_UFX2VT[d["entrust_bs"]],
                     price=float(d["business_price"]),
                     volume=int(float(d["business_amount"])),
                     datetime=dt,
@@ -603,7 +601,7 @@ class TdApi:
             # 再推送委托更新
             order = self.orders.get(orderid, None)
             if order:
-                order.status = STATUS_UF2VT.get(d["entrust_status"], Status.SUBMITTING)
+                order.status = STATUS_UFX2VT.get(d["entrust_status"], Status.SUBMITTING)
 
                 # 撤单则不能累计委托已成交数量
                 if d["real_type"] != "2":
@@ -669,7 +667,6 @@ class TdApi:
         try:
             lpCheckPack = py_t2sdk.pyIF2Packer()
             lpCheckPack.BeginPack()
-
             # 加入字段名
             lpCheckPack.AddField("branch_no", 'I', 5)
             lpCheckPack.AddField("fund_account", 'S', 18)
@@ -782,7 +779,7 @@ class TdApi:
             print('creat faild!!')
             print(self.connection.GetErrorMsg(ret))
         # 检查合法性
-        if req.exchange not in EXCHANGE_VT2UF:
+        if req.exchange not in EXCHANGE_VT2UFX:
             self.gateway.write_log(f"委托失败，不支持的交易所{req.exchange.value}")
             return
 
@@ -797,11 +794,11 @@ class TdApi:
         hs_req["fund_account"] = self.account
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
-        hs_req["exchange_type"] = EXCHANGE_VT2UF[req.exchange]
+        hs_req["exchange_type"] = EXCHANGE_VT2UFX[req.exchange]
         hs_req["stock_code"] = req.symbol
         hs_req["entrust_amount"] = req.volume
         hs_req["entrust_price"] = req.price
-        hs_req["entrust_bs"] = DIRECTION_VT2UF[req.direction]
+        hs_req["entrust_bs"] = DIRECTION_VT2UFX[req.direction]
         hs_req["entrust_prop"] = "0"
         hs_req["entrust_reference"] = orderid
         hs_req["user_token"] = self.user_token
