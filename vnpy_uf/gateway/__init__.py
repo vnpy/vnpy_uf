@@ -1,1 +1,1 @@
-from .ufx_gateway import UfxGateway
+from .uf_gateway import UfGateway

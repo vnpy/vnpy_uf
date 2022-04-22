@@ -1,1 +1,1 @@
-recursive-include vnpy_ufx *.pyd *.dat
+recursive-include vnpy_uf *.pyd *.dat
