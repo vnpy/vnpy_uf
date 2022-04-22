@@ -77,15 +77,15 @@ STATUS_UF2VT: Dict[str, Status] = {
 # 其他常量
 CHINA_TZ = timezone("Asia/Shanghai")       # 中国时区
 
-FUNCTION_USER_LOGIN: int = 331100
-FUNCTION_QUERY_CONTRACT: int = 330300
-FUNCTION_QUERY_ORDER: int = 333101
-FUNCTION_QUERY_TRADE: int = 333102
-FUNCTION_QUERY_ACCOUNT: int = 332255
-FUNCTION_QUERY_POSITION: int = 333104
-FUNCTION_SEND_ORDER: int = 333002
-FUNCTION_CANCEL_ORDER: int = 333017
-FUNCTION_SUBSCRIBE_RETURN: int = 620003
+FUNCTION_USER_LOGIN = 331100
+FUNCTION_QUERY_CONTRACT = 330300
+FUNCTION_QUERY_ORDER = 333101
+FUNCTION_QUERY_TRADE = 333102
+FUNCTION_QUERY_ACCOUNT = 332255
+FUNCTION_QUERY_POSITION = 333104
+FUNCTION_SEND_ORDER = 333002
+FUNCTION_CANCEL_ORDER = 333017
+FUNCTION_SUBSCRIBE_RETURN = 620003
 
 # 合约数据全局缓存字典
 symbol_contract_map: Dict[str, ContractData] = {}
@@ -343,11 +343,9 @@ class TdApi:
         self.station = station
         self.account = account
         self.password = password
-        self.server = server
 
         # 如果尚未连接，则尝试连接
         if not self.connect_status:
-            server: str = self.server
             self.connection, self.callback = self.init_connection("交易", server)
             self.connect_status = True
 
