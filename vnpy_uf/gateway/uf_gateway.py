@@ -260,17 +260,17 @@ class MdApi:
                     exchange=contract.exchange,
                     datetime=generate_datetime(dt),
                     name=contract.name,
-                    open_price=float(row["open"]),
-                    high_price=float(row["high"]),
-                    low_price=float(row["low"]),
-                    pre_close=float(row["pre_close"]),
-                    last_price=float(row["price"]),
-                    volume=float(row["volume"]),
-                    turnover=float(row["amount"]),
-                    bid_price_1=float(row["b1_p"]),
-                    bid_volume_1=float(row["b1_v"]),
-                    ask_price_1=float(row["a1_p"]),
-                    ask_volume_1=float(row["a1_v"]),
+                    open_price=process_data(row["open"]),
+                    high_price=process_data(row["high"]),
+                    low_price=process_data(row["low"]),
+                    pre_close=process_data(row["pre_close"]),
+                    last_price=process_data(row["price"]),
+                    volume=process_data(row["volume"]),
+                    turnover=process_data(row["amount"]),
+                    bid_price_1=process_data(row["b1_p"]),
+                    bid_volume_1=process_data(row["b1_v"]),
+                    ask_price_1=process_data(row["a1_p"]),
+                    ask_volume_1=process_data(row["a1_v"]),
                     gateway_name=self.gateway_name
                 )
                 self.gateway.on_tick(tick)
@@ -1059,6 +1059,15 @@ def generate_datetime(timestamp: str) -> datetime:
     dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
     dt: datetime = CHINA_TZ.localize(dt)
     return dt
+
+
+def process_data(data: str) -> float:
+    """处理空字符"""
+    if data == "":
+        d = 0
+    else:
+        d = float(data)
+    return d
 
 
 # TD API全局对象（用于在回调类中访问）
