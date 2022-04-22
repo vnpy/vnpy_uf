@@ -1,5 +1,5 @@
 from typing import Any, Callable, Dict, List, Set
-from datetime import datetime, time
+from datetime import datetime
 from pytz import timezone
 from copy import copy
 from threading import Thread
@@ -93,6 +93,9 @@ symbol_contract_map: Dict[str, ContractData] = {}
 
 class UfGateway(BaseGateway):
     """UF证券接口"""
+
+    default_name: str = "UF"
+
     default_setting: Dict[str, Any] = {
         "UF营业部": 0,
         "UF委托方式": "7",
