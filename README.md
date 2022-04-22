@@ -1,4 +1,4 @@
-# vn.py框架的恒生UFX交易接口
+# VeighNa框架的恒生UFX交易接口
 
 <p align="center">
   <img src ="https://vnpy.oss-cn-shanghai.aliyuncs.com/vnpy-logo.png"/>
@@ -17,7 +17,7 @@
 
 ## 安装
 
-安装需要基于3.0版本以上的[VN Studio](https://www.vnpy.com)。
+安装需要基于3.0.0版本的【[**VeighNa**](https://github.com/vnpy/vnpy)】和Python3.7环境（若使用2.9.0版本的【[**VeighNa Studio**](https://www.vnpy.com/)】，需要升级tushare至最新版本）。
 
 直接使用pip命令：
 
@@ -50,7 +50,7 @@ def main():
 
     event_engine = EventEngine()
     main_engine = MainEngine(event_engine)
-    main_engine.add_gateway(UfxpGateway)
+    main_engine.add_gateway(UfxGateway)
     
     main_window = MainWindow(main_engine, event_engine)
     main_window.showMaximized()
