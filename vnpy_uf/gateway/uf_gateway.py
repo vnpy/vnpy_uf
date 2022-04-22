@@ -77,15 +77,15 @@ STATUS_UF2VT: Dict[str, Status] = {
 # 其他常量
 CHINA_TZ = timezone("Asia/Shanghai")       # 中国时区
 
-FUNCTION_USER_LOGIN: int = 331100
-FUNCTION_QUERY_CONTRACT: int = 330300
-FUNCTION_QUERY_ORDER: int = 333101
-FUNCTION_QUERY_TRADE: int = 333102
-FUNCTION_QUERY_ACCOUNT: int = 332255
-FUNCTION_QUERY_POSITION: int = 333104
-FUNCTION_SEND_ORDER: int = 333002
-FUNCTION_CANCEL_ORDER: int = 333017
-FUNCTION_SUBSCRIBE_RETURN: int = 620003
+FUNCTION_USER_LOGIN = 331100
+FUNCTION_QUERY_CONTRACT = 330300
+FUNCTION_QUERY_ORDER = 333101
+FUNCTION_QUERY_TRADE = 333102
+FUNCTION_QUERY_ACCOUNT = 332255
+FUNCTION_QUERY_POSITION = 333104
+FUNCTION_SEND_ORDER = 333002
+FUNCTION_CANCEL_ORDER = 333017
+FUNCTION_SUBSCRIBE_RETURN = 620003
 
 # 合约数据全局缓存字典
 symbol_contract_map: Dict[str, ContractData] = {}
@@ -99,11 +99,9 @@ class UfGateway(BaseGateway):
     default_setting: Dict[str, Any] = {
         "UF营业部": 0,
         "UF委托方式": "7",
-        "UF账号": "70960562",
-        "UF密码": "111111",
-        "UF服务器1": "121.41.126.194:9359",
-        "UF服务器2": "",
-        "UF登录名称": "",
+        "UF账号": "",
+        "UF密码": "",
+        "UF服务器": ""
     }
 
     exchanges: List[str] = list(EXCHANGE_UF2VT.values())
@@ -127,9 +125,7 @@ class UfGateway(BaseGateway):
         uf_entrust_way: str = setting["UF委托方式"]
         uf_account: str = setting["UF账号"]
         uf_password: str = setting["UF密码"]
-        uf_server1: str = setting["UF服务器1"]
-        uf_server2: str = setting["UF服务器2"]
-        uf_name: str = setting["UF登录名称"]
+        uf_server: str = setting["UF服务器"]
         uf_station: str = ""
 
         self.td_api.connect(
@@ -138,9 +134,7 @@ class UfGateway(BaseGateway):
             uf_station,
             uf_account,
             uf_password,
-            uf_server1,
-            uf_server2,
-            uf_name
+            uf_server
         )
 
         self.init_query()
@@ -296,7 +290,6 @@ class TdApi:
         self.account: str = ""
         self.password: str = ""
         self.license: str = ""
-        self.name: str = ""
 
         # 运行缓存
         self.connect_status: bool = False
@@ -342,9 +335,7 @@ class TdApi:
         station: str,
         account: str,
         password: str,
-        server1: str,
-        server2: str,
-        name: str
+        server: str,
     ) -> None:
         """连接服务器"""
         self.branch_no = branch_no
@@ -352,17 +343,9 @@ class TdApi:
         self.station = station
         self.account = account
         self.password = password
-        self.server1 = server1
-        self.server2 = server2
-        self.name = name
 
         # 如果尚未连接，则尝试连接
         if not self.connect_status:
-            if self.server1 and self.server2:
-                server: str = f"{self.server1};{self.server2}"
-            else:
-                server: str = self.server1
-
             self.connection, self.callback = self.init_connection("交易", server)
             self.connect_status = True
 
