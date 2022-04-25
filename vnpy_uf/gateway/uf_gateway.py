@@ -899,7 +899,6 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["request_num"] = 10
         self.send_req(FUNCTION_QUERY_POSITION, hs_req)
 
     def query_account(self) -> int:
@@ -925,7 +924,6 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["request_num"] = 10
 
         # 如果传入委托号，则进行定向查询
         if entrust_no:
@@ -942,7 +940,6 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["request_num"] = 10
 
         self.send_req(FUNCTION_QUERY_ORDER, hs_req)
 
