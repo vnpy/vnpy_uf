@@ -1,5 +1,3 @@
-from operator import le
-from turtle import position
 from typing import Any, Callable, Dict, List, Set
 from datetime import datetime
 from pytz import timezone
@@ -547,8 +545,15 @@ class TdApi:
 
             self.gateway.on_contract(contract)
             symbol_contract_map[contract.symbol] = contract
+            position_str = d["position_str"]
 
-        self.gateway.write_log(f"{contract.exchange.value}合约信息查询成功")
+        if len(data) < 1000:
+            self.gateway.write_log(f"{contract.exchange.value}合约信息查询成功")
+        else:
+            if contract.exchange == Exchange.SSE:
+                self.query_sse_contracts(position_str)
+            else:
+                self.query_szse_contracts(position_str)
 
     def on_query_position(self, data: List[Dict[str, str]], reqid: int) -> None:
         """持仓查询回报"""
@@ -959,7 +964,7 @@ class TdApi:
         self.query_sse_contracts()
         self.query_szse_contracts()
 
-    def query_sse_contracts(self) -> int:
+    def query_sse_contracts(self, position_str: str = "") -> int:
         """查询上交所合约信息"""
         hs_req: dict = self.generate_req()
         hs_req["fund_account"] = self.account
@@ -967,10 +972,11 @@ class TdApi:
         hs_req["query_type"] = 1
         hs_req["exchange_type"] = 1
         hs_req["stock_type"] = 0
+        hs_req["position_str"] = position_str
 
         self.send_req(FUNCTION_QUERY_CONTRACT, hs_req)
 
-    def query_szse_contracts(self) -> int:
+    def query_szse_contracts(self, position_str: str = "") -> int:
         """查询深交所合约信息"""
         hs_req: dict = self.generate_req()
         hs_req["fund_account"] = self.account
@@ -978,6 +984,7 @@ class TdApi:
         hs_req["query_type"] = 1
         hs_req["exchange_type"] = 2
         hs_req["stock_type"] = 0
+        hs_req["position_str"] = position_str
 
         self.send_req(FUNCTION_QUERY_CONTRACT, hs_req)
 
