@@ -126,12 +126,10 @@ class UfGateway(BaseGateway):
         uf_account: str = setting["UF账号"]
         uf_password: str = setting["UF密码"]
         uf_server: str = setting["UF服务器"]
-        uf_station: str = ""
 
         self.td_api.connect(
             uf_branch_no,
             uf_entrust_way,
-            uf_station,
             uf_account,
             uf_password,
             uf_server
@@ -286,7 +284,6 @@ class TdApi:
         # 登录信息
         self.branch_no: int = 0
         self.entrust_way: str = ""
-        self.station: str = ""
         self.account: str = ""
         self.password: str = ""
         self.license: str = ""
@@ -332,7 +329,6 @@ class TdApi:
         self,
         branch_no: int,
         entrust_way: str,
-        station: str,
         account: str,
         password: str,
         server: str,
@@ -340,7 +336,6 @@ class TdApi:
         """连接服务器"""
         self.branch_no = branch_no
         self.entrust_way = entrust_way
-        self.station = station
         self.account = account
         self.password = password
 
@@ -811,7 +806,7 @@ class TdApi:
         req: dict = {
             "op_branch_no": 0,
             "op_entrust_way": self.entrust_way,
-            "op_station": self.station
+            "op_station": ""
         }
         return req
 
