@@ -115,8 +115,6 @@ class UfGateway(BaseGateway):
 
         self.run_timer: Thread = Thread(target=self.process_md_event)
 
-        self.contracts: Dict[str, ContractData] = {}
-
     def connect(self, setting: dict) -> None:
         """连接服务器"""
 
@@ -929,7 +927,7 @@ class TdApi:
         hs_req["user_token"] = self.user_token
         self.send_req(FUNCTION_QUERY_ACCOUNT, hs_req)
 
-    def query_trade(self, position_str: str = "", entrust_no: str = "") -> int:
+    def query_trade(self, position_str: str = "") -> int:
         """查询成交"""
         hs_req: dict = self.generate_req()
         hs_req["branch_no"] = self.branch_no
@@ -940,13 +938,9 @@ class TdApi:
         hs_req["user_token"] = self.user_token
         hs_req["position_str"]  = position_str
 
-        # 如果传入委托号，则进行定向查询
-        if entrust_no:
-            hs_req["locate_entrust_no"] = entrust_no
-
         self.send_req(FUNCTION_QUERY_TRADE, hs_req)
 
-    def query_order(self, position_str: str = "", entrust_no: str = "") -> int:
+    def query_order(self, position_str: str = "") -> int:
         """查询委托"""
         hs_req: dict = self.generate_req()
         hs_req["branch_no"] = self.branch_no
