@@ -126,12 +126,10 @@ class UfGateway(BaseGateway):
         uf_account: str = setting["UF账号"]
         uf_password: str = setting["UF密码"]
         uf_server: str = setting["UF服务器"]
-        uf_station: str = ""
 
         self.td_api.connect(
             uf_branch_no,
             uf_entrust_way,
-            uf_station,
             uf_account,
             uf_password,
             uf_server
@@ -286,7 +284,6 @@ class TdApi:
         # 登录信息
         self.branch_no: int = 0
         self.entrust_way: str = ""
-        self.station: str = ""
         self.account: str = ""
         self.password: str = ""
         self.license: str = ""
@@ -332,7 +329,6 @@ class TdApi:
         self,
         branch_no: int,
         entrust_way: str,
-        station: str,
         account: str,
         password: str,
         server: str,
@@ -340,7 +336,6 @@ class TdApi:
         """连接服务器"""
         self.branch_no = branch_no
         self.entrust_way = entrust_way
-        self.station = station
         self.account = account
         self.password = password
 
@@ -465,7 +460,6 @@ class TdApi:
 
         for d in data:
             if d["report_time"] != '0':
-
                 time_str: str = d["report_time"].rjust(6, "0")
                 dt: str = d["init_date"] + " " + time_str[:6]
                 order: OrderData = OrderData(
@@ -486,9 +480,13 @@ class TdApi:
                 self.sysid_localid_map[d["entrust_no"]] = order.orderid
                 self.orders[order.orderid] = order
                 self.gateway.on_order(order)
+                position_str = d["position_str"]
 
-        self.gateway.write_log("委托信息查询成功")
-        self.query_trade()
+        if len(data) < 50:
+            self.gateway.write_log("委托信息查询成功")
+            self.query_trade()
+        else:
+            self.query_order(position_str)
 
     def on_query_trade(self, data: List[Dict[str, str]], reqid: int) -> None:
         """成交查询回报"""
@@ -520,8 +518,12 @@ class TdApi:
             self.tradeids.add(trade.tradeid)
 
             self.gateway.on_trade(trade)
+            position_str = d["position_str"]
 
-        self.gateway.write_log("成交信息查询成功")
+        if len(data) < 50:
+            self.gateway.write_log("成交信息查询成功")
+        else:
+            self.query_trade(position_str)
 
     def on_query_contract(self, data: List[Dict[str, str]], reqid: int) -> None:
         """合约查询回报"""
@@ -543,8 +545,15 @@ class TdApi:
 
             self.gateway.on_contract(contract)
             symbol_contract_map[contract.symbol] = contract
+            position_str = d["position_str"]
 
-        self.gateway.write_log(f"{contract.exchange.value}合约信息查询成功")
+        if len(data) < 1000:
+            self.gateway.write_log(f"{contract.exchange.value}合约信息查询成功")
+        else:
+            if contract.exchange == Exchange.SSE:
+                self.query_sse_contracts(position_str)
+            else:
+                self.query_szse_contracts(position_str)
 
     def on_query_position(self, data: List[Dict[str, str]], reqid: int) -> None:
         """持仓查询回报"""
@@ -565,6 +574,10 @@ class TdApi:
                 gateway_name=self.gateway_name
             )
             self.gateway.on_position(position)
+            position_str = d["position_str"]
+
+        if len(data) == 50:
+            self.query_position(position_str)
 
     def on_send_order(self, data: List[Dict[str, str]], reqid: int) -> None:
         """委托下单回报"""
@@ -811,7 +824,7 @@ class TdApi:
         req: dict = {
             "op_branch_no": 0,
             "op_entrust_way": self.entrust_way,
-            "op_station": self.station
+            "op_station": ""
         }
         return req
 
@@ -887,7 +900,7 @@ class TdApi:
         if sysid:
             self.reqid_sysid_map[reqid] = sysid
 
-    def query_position(self) -> int:
+    def query_position(self, position_str: str = "") -> int:
         """查询持仓"""
         if not self.login_status:
             return
@@ -899,7 +912,7 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["request_num"] = 10
+        hs_req["position_str"]  = position_str
         self.send_req(FUNCTION_QUERY_POSITION, hs_req)
 
     def query_account(self) -> int:
@@ -916,7 +929,7 @@ class TdApi:
         hs_req["user_token"] = self.user_token
         self.send_req(FUNCTION_QUERY_ACCOUNT, hs_req)
 
-    def query_trade(self, entrust_no: str = "") -> int:
+    def query_trade(self, position_str: str = "", entrust_no: str = "") -> int:
         """查询成交"""
         hs_req: dict = self.generate_req()
         hs_req["branch_no"] = self.branch_no
@@ -925,7 +938,7 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["request_num"] = 10
+        hs_req["position_str"]  = position_str
 
         # 如果传入委托号，则进行定向查询
         if entrust_no:
@@ -933,7 +946,7 @@ class TdApi:
 
         self.send_req(FUNCTION_QUERY_TRADE, hs_req)
 
-    def query_order(self, entrust_no: str = "") -> int:
+    def query_order(self, position_str: str = "", entrust_no: str = "") -> int:
         """查询委托"""
         hs_req: dict = self.generate_req()
         hs_req["branch_no"] = self.branch_no
@@ -942,7 +955,7 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["request_num"] = 10
+        hs_req["position_str"]  = position_str
 
         self.send_req(FUNCTION_QUERY_ORDER, hs_req)
 
@@ -951,7 +964,7 @@ class TdApi:
         self.query_sse_contracts()
         self.query_szse_contracts()
 
-    def query_sse_contracts(self) -> int:
+    def query_sse_contracts(self, position_str: str = "") -> int:
         """查询上交所合约信息"""
         hs_req: dict = self.generate_req()
         hs_req["fund_account"] = self.account
@@ -959,10 +972,11 @@ class TdApi:
         hs_req["query_type"] = 1
         hs_req["exchange_type"] = 1
         hs_req["stock_type"] = 0
+        hs_req["position_str"] = position_str
 
         self.send_req(FUNCTION_QUERY_CONTRACT, hs_req)
 
-    def query_szse_contracts(self) -> int:
+    def query_szse_contracts(self, position_str: str = "") -> int:
         """查询深交所合约信息"""
         hs_req: dict = self.generate_req()
         hs_req["fund_account"] = self.account
@@ -970,6 +984,7 @@ class TdApi:
         hs_req["query_type"] = 1
         hs_req["exchange_type"] = 2
         hs_req["stock_type"] = 0
+        hs_req["position_str"] = position_str
 
         self.send_req(FUNCTION_QUERY_CONTRACT, hs_req)
 
