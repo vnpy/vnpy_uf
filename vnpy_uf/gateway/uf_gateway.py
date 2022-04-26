@@ -715,7 +715,6 @@ class TdApi:
     def login(self) -> int:
         """登录"""
         ret: int = self.connection.Create2BizMsg(self.callback)
-
         if ret != 0:
             msg: str = self.connection.GetErrorMsg(ret)
             self.gateway.write_log(f"登录失败，错误码{ret}，错误信息{msg}")
@@ -755,7 +754,7 @@ class TdApi:
         lpCheckPack.AddInt(self.branch_no)
         lpCheckPack.AddStr(self.account)
         lpCheckPack.AddInt(0)
-        lpCheckPack.AddChar('7')
+        lpCheckPack.AddChar(self.entrust_way)
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr(self.password)
@@ -799,7 +798,7 @@ class TdApi:
         lpCheckPack.AddInt(self.branch_no)
         lpCheckPack.AddStr(self.account)
         lpCheckPack.AddInt(0)
-        lpCheckPack.AddChar('7')
+        lpCheckPack.AddChar(self.entrust_way)
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr("")
