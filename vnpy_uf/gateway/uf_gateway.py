@@ -115,8 +115,6 @@ class UfGateway(BaseGateway):
 
         self.run_timer: Thread = Thread(target=self.process_md_event)
 
-        self.contracts: Dict[str, ContractData] = {}
-
     def connect(self, setting: dict) -> None:
         """连接服务器"""
 
@@ -733,7 +731,6 @@ class TdApi:
     def login(self) -> int:
         """登录"""
         ret: int = self.connection.Create2BizMsg(self.callback)
-
         if ret != 0:
             msg: str = self.connection.GetErrorMsg(ret)
             self.gateway.write_log(f"登录失败，错误码{ret}，错误信息{msg}")
@@ -773,7 +770,7 @@ class TdApi:
         lpCheckPack.AddInt(self.branch_no)
         lpCheckPack.AddStr(self.account)
         lpCheckPack.AddInt(0)
-        lpCheckPack.AddChar('7')
+        lpCheckPack.AddChar(self.entrust_way)
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr(self.password)
@@ -817,7 +814,7 @@ class TdApi:
         lpCheckPack.AddInt(self.branch_no)
         lpCheckPack.AddStr(self.account)
         lpCheckPack.AddInt(0)
-        lpCheckPack.AddChar('7')
+        lpCheckPack.AddChar(self.entrust_way)
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr("")
         lpCheckPack.AddStr("")
@@ -945,7 +942,7 @@ class TdApi:
         hs_req["user_token"] = self.user_token
         self.send_req(FUNCTION_QUERY_ACCOUNT, hs_req)
 
-    def query_trade(self, position_str: str = "", entrust_no: str = "") -> int:
+    def query_trade(self, position_str: str = "") -> int:
         """查询成交"""
         hs_req: dict = self.generate_req()
         hs_req["branch_no"] = self.branch_no
@@ -956,13 +953,9 @@ class TdApi:
         hs_req["user_token"] = self.user_token
         hs_req["position_str"] = position_str
 
-        # 如果传入委托号，则进行定向查询
-        if entrust_no:
-            hs_req["locate_entrust_no"] = entrust_no
-
         self.send_req(FUNCTION_QUERY_TRADE, hs_req)
 
-    def query_order(self, position_str: str = "", entrust_no: str = "") -> int:
+    def query_order(self, position_str: str = "") -> int:
         """查询委托"""
         hs_req: dict = self.generate_req()
         hs_req["branch_no"] = self.branch_no
