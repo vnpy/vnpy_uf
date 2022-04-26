@@ -97,11 +97,11 @@ class UfGateway(BaseGateway):
     default_name: str = "UF"
 
     default_setting: Dict[str, Any] = {
-        "UF营业部": 0,
-        "UF委托方式": "7",
         "UF账号": "",
         "UF密码": "",
-        "UF服务器": ""
+        "UF服务器": "",
+        "UF营业部": 22,
+        "UF委托方式": "7"
     }
 
     exchanges: List[str] = list(EXCHANGE_UF2VT.values())
@@ -260,9 +260,25 @@ class MdApi:
                     volume=process_data(row["volume"]),
                     turnover=process_data(row["amount"]),
                     bid_price_1=process_data(row["b1_p"]),
-                    bid_volume_1=process_data(row["b1_v"]),
+                    bid_price_2=process_data(row["b2_p"]),
+                    bid_price_3=process_data(row["b3_p"]),
+                    bid_price_4=process_data(row["b4_p"]),
+                    bid_price_5=process_data(row["b5_p"]),
+                    bid_volume_1=process_data(row["b1_v"]) * 100,
+                    bid_volume_2=process_data(row["b2_v"]) * 100,
+                    bid_volume_3=process_data(row["b3_v"]) * 100,
+                    bid_volume_4=process_data(row["b4_v"]) * 100,
+                    bid_volume_5=process_data(row["b5_v"]) * 100,
                     ask_price_1=process_data(row["a1_p"]),
-                    ask_volume_1=process_data(row["a1_v"]),
+                    ask_price_2=process_data(row["a2_p"]),
+                    ask_price_3=process_data(row["a3_p"]),
+                    ask_price_4=process_data(row["a4_p"]),
+                    ask_price_5=process_data(row["a5_p"]),
+                    ask_volume_1=process_data(row["a1_v"]) * 100,
+                    ask_volume_2=process_data(row["a2_v"]) * 100,
+                    ask_volume_3=process_data(row["a3_v"]) * 100,
+                    ask_volume_4=process_data(row["a4_v"]) * 100,
+                    ask_volume_5=process_data(row["a5_v"]) * 100,
                     gateway_name=self.gateway_name
                 )
                 self.gateway.on_tick(tick)
@@ -536,10 +552,10 @@ class TdApi:
                 symbol=d["stock_code"],
                 exchange=EXCHANGE_UF2VT[d["exchange_type"]],
                 name=d["stock_name"],
-                size=int(float(d["store_unit"])),
-                pricetick=float(d["price_step"]),
+                size=1,
+                pricetick=0.01,
                 product=Product.EQUITY,
-                min_volume=d["buy_unit"],
+                min_volume=int(d["buy_unit"]),
                 gateway_name=self.gateway_name
             )
 
@@ -912,7 +928,7 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["position_str"]  = position_str
+        hs_req["position_str"] = position_str
         self.send_req(FUNCTION_QUERY_POSITION, hs_req)
 
     def query_account(self) -> int:
@@ -938,7 +954,7 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["position_str"]  = position_str
+        hs_req["position_str"] = position_str
 
         # 如果传入委托号，则进行定向查询
         if entrust_no:
@@ -955,7 +971,7 @@ class TdApi:
         hs_req["password"] = self.password
         hs_req["password_type"] = "2"
         hs_req["user_token"] = self.user_token
-        hs_req["position_str"]  = position_str
+        hs_req["position_str"] = position_str
 
         self.send_req(FUNCTION_QUERY_ORDER, hs_req)
 
