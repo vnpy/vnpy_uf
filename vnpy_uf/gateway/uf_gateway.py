@@ -1,6 +1,5 @@
 from typing import Any, Callable, Dict, List, Set
 from datetime import datetime
-from pytz import timezone
 from copy import copy
 from threading import Thread
 from time import sleep
@@ -31,6 +30,7 @@ from vnpy.trader.object import (
     SubscribeRequest
 )
 from vnpy.trader.setting import SETTINGS
+from vnpy.trader.utility import ZoneInfo
 
 from ..api import (
     LICENSE,
@@ -75,7 +75,7 @@ STATUS_UF2VT: Dict[str, Status] = {
 
 
 # 其他常量
-CHINA_TZ = timezone("Asia/Shanghai")       # 中国时区
+CHINA_TZ = ZoneInfo("Asia/Shanghai")       # 中国时区
 
 FUNCTION_USER_LOGIN = 331100
 FUNCTION_QUERY_CONTRACT = 330300
@@ -1064,7 +1064,7 @@ def unpack_data(unpacker: py_t2sdk.pyIF2UnPacker) -> List[Dict[str, str]]:
 def generate_datetime(timestamp: str) -> datetime:
     """生成时间戳"""
     dt: datetime = datetime.strptime(timestamp, "%Y%m%d %H%M%S")
-    dt: datetime = CHINA_TZ.localize(dt)
+    dt: datetime = dt.replace(tzinfo=CHINA_TZ)
     return dt
 
 
